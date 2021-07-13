@@ -9,5 +9,5 @@ import org.springframework.boot.runApplication
 class SpringKaptApplication
 
 fun main(args: Array<String>) {
-    runApplication<SpringKaptApplication>(*args)
+	runApplication<SpringKaptApplication>(*args)
 }
