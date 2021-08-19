@@ -1,11 +1,15 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel.CURRENT
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	val kotlinVersion = "1.5.21"
 
-	id("org.springframework.boot") version "2.5.2"
+	id("org.springframework.boot") version "2.5.4"
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
+	id("com.github.ben-manes.versions") version "0.39.0"
+
 	kotlin("jvm") version kotlinVersion
 	kotlin("plugin.spring") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
@@ -42,8 +46,27 @@ tasks {
 		useJUnitPlatform()
 	}
 
+	withType<DependencyUpdatesTask> {
+		rejectVersionIf {
+			isNonStable(candidate.version)
+		}
+		gradleReleaseChannel = CURRENT.id
+	}
+
 	named<Wrapper>("wrapper") {
-		gradleVersion = "7.1.1"
+		gradleVersion = "7.2"
 		distributionType = ALL
 	}
+}
+
+fun isNonStable(version: String): Boolean {
+	val stableKeyword = listOf("RELEASE", "FINAL", "GA").any {
+		version.toUpperCase()
+			.contains(it)
+	}
+	val unstableKeyword =
+		listOf("""M\d+""").any { version.toUpperCase().contains(it.toRegex()) }
+	val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+	val isStable = (stableKeyword && !unstableKeyword) || regex.matches(version)
+	return isStable.not()
 }
